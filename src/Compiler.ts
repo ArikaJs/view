@@ -28,7 +28,8 @@ export class Compiler {
 
         const escapedContent = content
             .replace(/\\/g, '\\\\')
-            .replace(/`/g, '\\`');
+            .replace(/`/g, '\\`')
+            .replace(/\$\{/g, '\\${');
 
         const regex = /(@\w+\s*\(.*?\)|@\w+|\{\{.*?\}\}|\{!!.*?!!\})/sg;
         let lastIndex = 0;

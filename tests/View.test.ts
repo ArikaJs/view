@@ -80,3 +80,32 @@ test('View handles includes', async () => {
 
     assert.strictEqual(html.trim(), '<header>Welcome</header> content');
 });
+
+test('View uses cache for improved performance', async () => {
+    const viewsPath = path.join(tempDir, 'cache');
+    fs.mkdirSync(viewsPath, { recursive: true });
+    fs.writeFileSync(path.join(viewsPath, 'test.html'), 'Cache Me');
+
+    const view = new View({ viewsPath, cache: true });
+
+    // First render - compiles
+    await view.render('test');
+
+    // Modify file on disk
+    fs.writeFileSync(path.join(viewsPath, 'test.html'), 'New Content');
+
+    // Second render - should still return old content from cache
+    const html = await view.render('test');
+    assert.strictEqual(html.trim(), 'Cache Me');
+});
+
+test('View handles static ${} and backticks safely', async () => {
+    const viewsPath = path.join(tempDir, 'escaping-js');
+    fs.mkdirSync(viewsPath, { recursive: true });
+    fs.writeFileSync(path.join(viewsPath, 'test.html'), '<div>${price}</div> `backticks`');
+
+    const view = new View({ viewsPath });
+    const html = await view.render('test');
+
+    assert.strictEqual(html.trim(), '<div>${price}</div> `backticks`');
+});
