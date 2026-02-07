@@ -36,9 +36,7 @@
         "url": "https://github.com/arikajs/view/issues"
     },
     "homepage": "https://github.com/arikajs/view#readme",
-    "dependencies": {
-        "@arikajs/foundation": "file:../foundation"
-    },
+    "dependencies": {},
     "devDependencies": {
         "@types/node": "^20.11.24",
         "typescript": "^5.3.3"

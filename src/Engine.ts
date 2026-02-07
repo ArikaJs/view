@@ -60,7 +60,7 @@ export class Engine {
         }
 
         const cacheFile = this.config.cachePath
-            ? path.join(this.config.cachePath, templateName.replace(/\./g, '_') + '.js')
+            ? path.join(this.config.cachePath, templateName.replace(/[\.\/\\]/g, '_') + '.js')
             : null;
 
         let jsCode: string | null = null;
