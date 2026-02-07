@@ -99,6 +99,28 @@ test('View uses cache for improved performance', async () => {
     assert.strictEqual(html.trim(), 'Cache Me');
 });
 
+test('View loads persistent disk cache', async () => {
+    const viewsPath = path.join(tempDir, 'disk-cache-views');
+    const cachePath = path.join(tempDir, 'disk-cache-bin');
+    fs.mkdirSync(viewsPath, { recursive: true });
+    fs.mkdirSync(cachePath, { recursive: true });
+
+    fs.writeFileSync(path.join(viewsPath, 'test.html'), 'Original Content');
+
+    // 1. First engine - populates disk cache
+    const view1 = new View({ viewsPath, cachePath, cache: true });
+    await view1.render('test');
+
+    // 2. Second engine - should read from disk cache even if memory is empty
+    const view2 = new View({ viewsPath, cachePath, cache: true });
+
+    // Modify original file to prove it's NOT reading from source
+    fs.writeFileSync(path.join(viewsPath, 'test.html'), 'Modified Content');
+
+    const html = await view2.render('test');
+    assert.strictEqual(html.trim(), 'Original Content');
+});
+
 test('View handles static ${} and backticks safely', async () => {
     const viewsPath = path.join(tempDir, 'escaping-js');
     fs.mkdirSync(viewsPath, { recursive: true });

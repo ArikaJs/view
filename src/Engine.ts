@@ -54,29 +54,45 @@ export class Engine {
      * Internal render logic.
      */
     private async renderTemplate(templateName: string, data: Record<string, any>): Promise<string> {
+        // 1. Check In-Memory Cache
         if (this.config.cache && this.compiledFunctions.has(templateName)) {
-            const cachedFunc = this.compiledFunctions.get(templateName)!;
-            return await cachedFunc(this, data);
+            return await this.compiledFunctions.get(templateName)!(this, data);
         }
 
-        const rawContent = this.templateLoader.read(templateName);
-        const jsCode = this.compiler.compile(rawContent);
+        const cacheFile = this.config.cachePath
+            ? path.join(this.config.cachePath, templateName.replace(/\./g, '_') + '.js')
+            : null;
 
-        // Persistent Cache
-        if (this.config.cache && this.config.cachePath) {
+        let jsCode: string | null = null;
+
+        // 2. Check Disk Cache
+        if (this.config.cache && cacheFile && fs.existsSync(cacheFile)) {
             try {
-                const cacheFile = path.join(this.config.cachePath, templateName.replace(/\./g, '_') + '.js');
-                if (!fs.existsSync(this.config.cachePath)) {
-                    fs.mkdirSync(this.config.cachePath, { recursive: true });
-                }
-                fs.writeFileSync(cacheFile, jsCode);
+                jsCode = fs.readFileSync(cacheFile, 'utf8');
             } catch (e) {
-                // Non-fatal: if caching fails, we still want to render
-                console.error(`View Cache Warning: Failed to write to ${this.config.cachePath}`);
+                // Fail silently and recompile
             }
         }
 
-        // Execute the compiled JS
+        // 3. Compile if not found in cache
+        if (!jsCode) {
+            const rawContent = this.templateLoader.read(templateName);
+            jsCode = this.compiler.compile(rawContent);
+
+            // Save to Disk Cache
+            if (this.config.cache && cacheFile) {
+                try {
+                    if (!fs.existsSync(this.config.cachePath!)) {
+                        fs.mkdirSync(this.config.cachePath!, { recursive: true });
+                    }
+                    fs.writeFileSync(cacheFile, jsCode);
+                } catch (e) {
+                    console.error(`View Cache Warning: Failed to write to ${this.config.cachePath}`);
+                }
+            }
+        }
+
+        // 4. Create Function and Save to Memory Cache
         const AsyncFunction = Object.getPrototypeOf(async function () { }).constructor;
         const renderFunc = new AsyncFunction('_engine', '_data', jsCode);
 
