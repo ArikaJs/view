@@ -109,3 +109,25 @@ test('View handles static ${} and backticks safely', async () => {
 
     assert.strictEqual(html.trim(), '<div>${price}</div> `backticks`');
 });
+
+test('View supports custom directives', async () => {
+    const viewsPath = path.join(tempDir, 'custom-directives');
+    fs.mkdirSync(viewsPath, { recursive: true });
+    fs.writeFileSync(path.join(viewsPath, 'test.html'), '@hello(World)');
+
+    const view = new View({ viewsPath });
+
+    view.addDirective({
+        name: 'hello',
+        handle(content: string) {
+            if (content.startsWith('@hello')) {
+                const name = content.match(/@hello\((.*)\)/)?.[1] || 'Guest';
+                return `_output += "Hello, ${name}!";\n`;
+            }
+            return '';
+        }
+    });
+
+    const html = await view.render('test');
+    assert.strictEqual(html.trim(), 'Hello, World!');
+});

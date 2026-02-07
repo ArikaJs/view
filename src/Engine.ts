@@ -1,3 +1,5 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { Compiler } from './Compiler';
 import { Template } from './Template';
 
@@ -59,6 +61,20 @@ export class Engine {
 
         const rawContent = this.templateLoader.read(templateName);
         const jsCode = this.compiler.compile(rawContent);
+
+        // Persistent Cache
+        if (this.config.cache && this.config.cachePath) {
+            try {
+                const cacheFile = path.join(this.config.cachePath, templateName.replace(/\./g, '_') + '.js');
+                if (!fs.existsSync(this.config.cachePath)) {
+                    fs.mkdirSync(this.config.cachePath, { recursive: true });
+                }
+                fs.writeFileSync(cacheFile, jsCode);
+            } catch (e) {
+                // Non-fatal: if caching fails, we still want to render
+                console.error(`View Cache Warning: Failed to write to ${this.config.cachePath}`);
+            }
+        }
 
         // Execute the compiled JS
         const AsyncFunction = Object.getPrototypeOf(async function () { }).constructor;
