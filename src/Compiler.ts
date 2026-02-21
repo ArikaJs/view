@@ -2,13 +2,25 @@ import { Directive, IfDirective } from './Directives/If';
 import { ForDirective } from './Directives/For';
 import { IncludeDirective } from './Directives/Include';
 import { SectionDirective } from './Directives/Section';
+import { PushDirective } from './Directives/Push';
+import { StackDirective } from './Directives/Stack';
+import { ComponentDirective } from './Directives/Component';
+import { SlotDirective } from './Directives/Slot';
+import { UnlessDirective } from './Directives/Unless';
+import { EmptyDirective } from './Directives/Empty';
 
 export class Compiler {
     private directives: Directive[] = [
         IfDirective,
         ForDirective,
         IncludeDirective,
-        SectionDirective
+        SectionDirective,
+        PushDirective,
+        StackDirective,
+        ComponentDirective,
+        SlotDirective,
+        UnlessDirective,
+        EmptyDirective
     ];
 
     /**

@@ -15,6 +15,14 @@ export class View {
     }
 
     /**
+     * Share data explicitly across all templates rendered by this view instance.
+     */
+    public share(key: string, value: any): this {
+        this.engine.share(key, value);
+        return this;
+    }
+
+    /**
      * Render a template with data.
      */
     public async render(template: string, data: Record<string, any> = {}): Promise<string> {

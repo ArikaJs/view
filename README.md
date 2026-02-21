@@ -27,7 +27,10 @@ The View package enables presentation logic in ArikaJS, transforming templates i
 - **Scope (v0.x)**:
   - Template compilation & rendering
   - Layout & section management
-  - Basic control structures (`@if`, `@for`)
+  - Components & slots architecture (`@component`, `@slot`)
+  - Stackable content (`@push`, `@stack`)
+  - Global shared data (`view.share()`)
+  - Basic control structures (`@if`, `@for`, `@unless`, `@empty`)
   - Safe output escaping
   - Template caching
 - **Out of scope (for this package)**:
@@ -88,6 +91,12 @@ HTML Output
   - Clean tags for logic and output.
 - **Layout & section support**
   - Powerful inheritance model for UI consistency.
+- **Components & Slots Architecture**
+  - Build robust, reusable UI components like buttons, alerts, and modals.
+- **CSS/JS Stacks**
+  - `@push` scripts and styles from partials into the document `<head>`.
+- **Global Data Sharing**
+  - Pass global variables (e.g. `user`, `config`) to all views at once.
 - **Partial / include support**
   - Modularize your templates into reusable components.
 - **Safe output escaping**
@@ -128,7 +137,17 @@ pnpm add @arikajs/view
 ```html
 @if (user)
     <p>Welcome, {{ user.name }}</p>
+@elseif (guest)
+    <p>Please login</p>
 @endif
+
+@unless (isEditor)
+    <p>You cannot edit this post.</p>
+@endunless
+
+@empty (items)
+    <p>There are no items to display.</p>
+@endempty
 ```
 
 ### Loops
@@ -138,9 +157,37 @@ pnpm add @arikajs/view
 @endfor
 ```
 
-### Includes
+### Includes & Components
 ```html
+<!-- Simple include -->
 @include('partials.header')
+
+<!-- Reusable Component -->
+@component('components.alert', { type: 'danger' })
+    @slot('title')
+        Error!
+    @endslot
+    
+    This is the default slot output.
+@endcomponent
+```
+*(In `components/alert.html`, you would output `{!! title !!}` and `{!! slot !!}`)*
+
+### Stackable Scripts & Styles
+You can push output to a stack from deep within child views or components, and render them all at once in the main layout.
+
+**child.html**
+```html
+@push('scripts')
+    <script src="https://cdn.example.com/widget.js"></script>
+@endpush
+```
+
+**layout.html**
+```html
+<head>
+    @stack('scripts')
+</head>
 ```
 
 ### Layouts & Sections
@@ -175,6 +222,9 @@ const view = new View({
     viewsPath: './views',
     cachePath: './storage/views',
 });
+
+// Share global data
+view.share('appName', 'ArikaJS Project');
 
 const html = await view.render('home', {
     title: 'Welcome to ArikaJS',

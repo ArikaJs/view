@@ -153,3 +153,58 @@ test('View supports custom directives', async () => {
     const html = await view.render('test');
     assert.strictEqual(html.trim(), 'Hello, World!');
 });
+
+test('View supports global shared data', async () => {
+    const viewsPath = path.join(tempDir, 'shared-data');
+    fs.mkdirSync(viewsPath, { recursive: true });
+    fs.writeFileSync(path.join(viewsPath, 'test.html'), '{{ globalVal }} - {{ localVal }}');
+
+    const view = new View({ viewsPath });
+    view.share('globalVal', 'Global');
+
+    assert.strictEqual((await view.render('test', { localVal: 'Local1' })).trim(), 'Global - Local1');
+    assert.strictEqual((await view.render('test', { localVal: 'Local2' })).trim(), 'Global - Local2');
+});
+
+test('View supports push and stack directives', async () => {
+    const viewsPath = path.join(tempDir, 'push-stack');
+    fs.mkdirSync(viewsPath, { recursive: true });
+    fs.writeFileSync(path.join(viewsPath, 'test.html'), '@push("scripts")<script>1</script>@endpush @push("scripts")<script>2</script>@endpush Scripts: @stack("scripts")');
+
+    const view = new View({ viewsPath });
+    const html = await view.render('test');
+
+    assert.ok(html.includes('<script>1</script>'));
+    assert.ok(html.includes('<script>2</script>'));
+});
+
+test('View supports unless and empty directives', async () => {
+    const viewsPath = path.join(tempDir, 'unless-empty');
+    fs.mkdirSync(viewsPath, { recursive: true });
+    fs.writeFileSync(path.join(viewsPath, 'unless.html'), '@unless(show) Hidden @endunless');
+    fs.writeFileSync(path.join(viewsPath, 'empty.html'), '@empty(items) EmptyArray @endempty @empty(str) EmptyString @endempty');
+
+    const view = new View({ viewsPath });
+
+    assert.strictEqual((await view.render('unless', { show: false })).trim(), 'Hidden');
+    assert.strictEqual((await view.render('unless', { show: true })).trim(), '');
+
+    assert.strictEqual((await view.render('empty', { items: [], str: '' })).replace(/\s+/g, ' ').trim(), 'EmptyArray EmptyString');
+    assert.strictEqual((await view.render('empty', { items: [1], str: 'A' })).trim(), '');
+});
+
+test('View supports components and slots', async () => {
+    const viewsPath = path.join(tempDir, 'components');
+    fs.mkdirSync(viewsPath, { recursive: true });
+
+    fs.writeFileSync(path.join(viewsPath, 'alert.html'), '<div class="alert {{ type }}"><h1>{!! title !!}</h1><p>{!! slot !!}</p></div>');
+    fs.writeFileSync(path.join(viewsPath, 'page.html'), '@component("alert", { type: "danger" }) @slot("title") Error @endslot Something went wrong. @endcomponent');
+
+    const view = new View({ viewsPath });
+    const html = await view.render('page');
+
+    assert.ok(html.includes('<div class="alert danger">'));
+    assert.ok(html.includes('Error'));
+    assert.ok(html.includes('Something went wrong.'));
+});
+
