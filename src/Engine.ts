@@ -87,6 +87,7 @@ export class Engine {
      * Render a template file.
      */
     public async render<T = Record<string, any>>(template: string, data: T = {} as T, isInternal = false): Promise<string> {
+        console.log(`[ViewEngine] Rendering template: ${template} (isInternal: ${isInternal})`);
         if (!isInternal) {
             this.sections = {};
             this.pushes = {};
@@ -134,16 +135,24 @@ export class Engine {
     }
 
     private async renderTemplate(templateName: string, data: Record<string, any>): Promise<string> {
-        const rawContent = this.templateLoader.read(templateName);
-        const contentHash = crypto.createHash('md5').update(rawContent).digest('hex');
-
-        // Check Cache
+        // 1. Check Memory Cache
         if (this.config.cache && this.compiledFunctions.has(templateName)) {
-            const cached = this.compiledFunctions.get(templateName)!;
-            if (cached.hash === contentHash) {
-                return await this.runCompiled(cached.func, data, templateName);
+            return await this.runCompiled(this.compiledFunctions.get(templateName)!.func, data, templateName);
+        }
+
+        // 2. Check Disk Cache (Primary - bypasses file read for speed)
+        if (this.config.cache && this.config.cachePath) {
+            const cachedFunc = this.loadFromDiskCache(templateName);
+            if (cachedFunc) {
+                // If we found it on disk, we can skip reading the source!
+                // But we don't have the current hash... we'll just use the one from disk.
+                this.compiledFunctions.set(templateName, { func: cachedFunc, hash: 'disk-cached' });
+                return await this.runCompiled(cachedFunc, data, templateName);
             }
         }
+
+        const rawContent = this.templateLoader.read(templateName);
+        const contentHash = crypto.createHash('md5').update(rawContent).digest('hex');
 
         const jsCode = this.compiler.compile(rawContent);
         const AsyncFunction = Object.getPrototypeOf(async function () { }).constructor;
@@ -154,9 +163,43 @@ export class Engine {
 
         if (this.config.cache) {
             this.compiledFunctions.set(templateName, { func: renderFunc, hash: contentHash });
+            if (this.config.cachePath) {
+                this.saveToDiskCache(templateName, contentHash, jsCode);
+            }
         }
 
         return await this.runCompiled(renderFunc, data, templateName);
+    }
+
+    private loadFromDiskCache(templateName: string, hash?: string): Function | null {
+        try {
+            const cacheKey = crypto.createHash('md5').update(templateName).digest('hex');
+            const cacheFile = path.join(this.config.cachePath!, `${cacheKey}.js`);
+
+            if (fs.existsSync(cacheFile)) {
+                const { hash: cachedHash, code } = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+                if (!hash || cachedHash === hash) {
+                    const AsyncFunction = Object.getPrototypeOf(async function () { }).constructor;
+                    return new AsyncFunction('_engine', '_data', `with (_data) {\n${code}\n}`);
+                }
+            }
+        } catch (e) {
+            // Ignore cache errors
+        }
+        return null;
+    }
+
+    private saveToDiskCache(templateName: string, hash: string, code: string): void {
+        try {
+            if (!fs.existsSync(this.config.cachePath!)) {
+                fs.mkdirSync(this.config.cachePath!, { recursive: true });
+            }
+            const cacheKey = crypto.createHash('md5').update(templateName).digest('hex');
+            const cacheFile = path.join(this.config.cachePath!, `${cacheKey}.js`);
+            fs.writeFileSync(cacheFile, JSON.stringify({ hash, code }), 'utf8');
+        } catch (e) {
+            // Ignore cache errors
+        }
     }
 
     private async runCompiled(func: Function, data: any, templateName: string): Promise<string> {

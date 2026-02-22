@@ -16,9 +16,13 @@ export class Parser {
         };
 
         while (this.position < this.tokens.length) {
+            const lastPos = this.position;
             const node = this.parseNode();
             if (node) {
                 root.children.push(node);
+            }
+            if (this.position <= lastPos && this.position < this.tokens.length) {
+                this.position++; // Safety advance
             }
         }
 
@@ -162,7 +166,7 @@ export class Parser {
 
     private isBlockDirective(name: string): boolean {
         const blockDirectives = [
-            'if', 'for', 'each', 'unless', 'section', 'push', 'prepend',
+            'if', 'for', 'each', 'unless', 'empty', 'section', 'push', 'prepend',
             'component', 'slot', 'auth', 'guest', 'switch', 'once', 'verbatim', 'fragment', 'await', 'php'
         ];
         return blockDirectives.includes(name);

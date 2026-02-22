@@ -71,11 +71,25 @@ export class Lexer {
                 if (nextChar && /[a-zA-Z]/.test(nextChar)) {
                     tokens.push(this.consumeDirective());
                     continue;
+                } else {
+                    // Not a directive, treat as regular text
+                    tokens.push({ type: TokenType.Text, value: '@', line: this.line });
+                    this.position++;
+                    continue;
                 }
             }
 
             // Otherwise, it's text
-            tokens.push(this.consumeText());
+            const textToken = this.consumeText();
+            if (textToken.value.length > 0) {
+                tokens.push(textToken);
+            } else if (this.position < this.input.length) {
+                // Avoid infinite loop if no other token matches but position didn't advance
+                const char = this.input[this.position];
+                tokens.push({ type: TokenType.Text, value: char, line: this.line });
+                if (char === '\n') this.line++;
+                this.position++;
+            }
         }
         return tokens;
     }
@@ -120,6 +134,11 @@ export class Lexer {
         let value = this.input.substring(start, this.position);
 
         // Check for expression @directive(...)
+        // Skip whitespace
+        while (this.position < this.input.length && /[ \t]/.test(this.input[this.position])) {
+            this.position++;
+        }
+
         if (this.input[this.position] === '(') {
             let parenCount = 1;
             this.position++;

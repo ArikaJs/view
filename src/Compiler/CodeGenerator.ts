@@ -40,7 +40,15 @@ export class CodeGenerator {
             case NodeType.Directive:
                 const dir = node as DirectiveNode;
                 const childrenCode = dir.children ? this.generateNodes(dir.children) : '';
-                return this.registry.handle(dir.name, dir.expression, childrenCode);
+                const result = this.registry.handle(dir.name, dir.expression, childrenCode);
+
+                if (result === null) {
+                    // Fallback for unknown directives (e.g., CSS @media, @keyframes)
+                    const originalText = `@${dir.name}${dir.expression ? '(' + dir.expression + ')' : ''}`;
+                    const sanitized = originalText.replace(/`/g, '\\`').replace(/\${/g, '\\${');
+                    return `_output += \`${sanitized}\`;\n${childrenCode}`;
+                }
+                return result;
 
             default:
                 return '';

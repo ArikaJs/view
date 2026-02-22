@@ -20,7 +20,7 @@ after(() => {
 test('View renders variables and escapes output', async () => {
     const viewsPath = path.join(tempDir, 'variables');
     fs.mkdirSync(viewsPath, { recursive: true });
-    fs.writeFileSync(path.join(viewsPath, 'test.html'), '<h1>{{ title }}</h1><p>{!! raw !!}</p>');
+    fs.writeFileSync(path.join(viewsPath, 'test.ark.html'), '<h1>{{ title }}</h1><p>{!! raw !!}</p>');
 
     const view = new View({ viewsPath });
     const html = await view.render('test', {
@@ -34,7 +34,7 @@ test('View renders variables and escapes output', async () => {
 test('View handles conditionals', async () => {
     const viewsPath = path.join(tempDir, 'conditionals');
     fs.mkdirSync(viewsPath, { recursive: true });
-    fs.writeFileSync(path.join(viewsPath, 'test.html'), '@if (show) Yes @else No @endif');
+    fs.writeFileSync(path.join(viewsPath, 'test.ark.html'), '@if (show) Yes @else No @endif');
 
     const view = new View({ viewsPath });
 
@@ -45,7 +45,7 @@ test('View handles conditionals', async () => {
 test('View handles loops', async () => {
     const viewsPath = path.join(tempDir, 'loops');
     fs.mkdirSync(viewsPath, { recursive: true });
-    fs.writeFileSync(path.join(viewsPath, 'test.html'), '<ul>@for (item of items)<li>{{ item }}</li>@endfor</ul>');
+    fs.writeFileSync(path.join(viewsPath, 'test.ark.html'), '<ul>@for (item of items)<li>{{ item }}</li>@endfor</ul>');
 
     const view = new View({ viewsPath });
     const html = await view.render('test', { items: ['A', 'B'] });
@@ -57,8 +57,8 @@ test('View handles layouts and sections', async () => {
     const viewsPath = path.join(tempDir, 'layouts');
     fs.mkdirSync(viewsPath, { recursive: true });
 
-    fs.writeFileSync(path.join(viewsPath, 'layout.html'), '<html><body>@yield("content")</body></html>');
-    fs.writeFileSync(path.join(viewsPath, 'page.html'), '@extends("layout") @section("content") <h1>Hello</h1> @endsection');
+    fs.writeFileSync(path.join(viewsPath, 'layout.ark.html'), '<html><body>@yield("content")</body></html>');
+    fs.writeFileSync(path.join(viewsPath, 'page.ark.html'), '@extends("layout") @section("content") <h1>Hello</h1> @endsection');
 
     const view = new View({ viewsPath });
     const html = await view.render('page');
@@ -72,8 +72,8 @@ test('View handles includes', async () => {
     const viewsPath = path.join(tempDir, 'includes');
     fs.mkdirSync(viewsPath, { recursive: true });
 
-    fs.writeFileSync(path.join(viewsPath, 'header.html'), '<header>{{ title }}</header>');
-    fs.writeFileSync(path.join(viewsPath, 'page.html'), '@include("header") content');
+    fs.writeFileSync(path.join(viewsPath, 'header.ark.html'), '<header>{{ title }}</header>');
+    fs.writeFileSync(path.join(viewsPath, 'page.ark.html'), '@include("header") content');
 
     const view = new View({ viewsPath });
     const html = await view.render('page', { title: 'Welcome' });
@@ -84,7 +84,7 @@ test('View handles includes', async () => {
 test('View uses cache for improved performance', async () => {
     const viewsPath = path.join(tempDir, 'cache');
     fs.mkdirSync(viewsPath, { recursive: true });
-    fs.writeFileSync(path.join(viewsPath, 'test.html'), 'Cache Me');
+    fs.writeFileSync(path.join(viewsPath, 'test.ark.html'), 'Cache Me');
 
     const view = new View({ viewsPath, cache: true });
 
@@ -92,7 +92,7 @@ test('View uses cache for improved performance', async () => {
     await view.render('test');
 
     // Modify file on disk
-    fs.writeFileSync(path.join(viewsPath, 'test.html'), 'New Content');
+    fs.writeFileSync(path.join(viewsPath, 'test.ark.html'), 'New Content');
 
     // Second render - should still return old content from cache
     const html = await view.render('test');
@@ -105,7 +105,7 @@ test('View loads persistent disk cache', async () => {
     fs.mkdirSync(viewsPath, { recursive: true });
     fs.mkdirSync(cachePath, { recursive: true });
 
-    fs.writeFileSync(path.join(viewsPath, 'test.html'), 'Original Content');
+    fs.writeFileSync(path.join(viewsPath, 'test.ark.html'), 'Original Content');
 
     // 1. First engine - populates disk cache
     const view1 = new View({ viewsPath, cachePath, cache: true });
@@ -115,7 +115,7 @@ test('View loads persistent disk cache', async () => {
     const view2 = new View({ viewsPath, cachePath, cache: true });
 
     // Modify original file to prove it's NOT reading from source
-    fs.writeFileSync(path.join(viewsPath, 'test.html'), 'Modified Content');
+    fs.writeFileSync(path.join(viewsPath, 'test.ark.html'), 'Modified Content');
 
     const html = await view2.render('test');
     assert.strictEqual(html.trim(), 'Original Content');
@@ -124,7 +124,7 @@ test('View loads persistent disk cache', async () => {
 test('View handles static ${} and backticks safely', async () => {
     const viewsPath = path.join(tempDir, 'escaping-js');
     fs.mkdirSync(viewsPath, { recursive: true });
-    fs.writeFileSync(path.join(viewsPath, 'test.html'), '<div>${price}</div> `backticks`');
+    fs.writeFileSync(path.join(viewsPath, 'test.ark.html'), '<div>${price}</div> `backticks`');
 
     const view = new View({ viewsPath });
     const html = await view.render('test');
@@ -135,19 +135,13 @@ test('View handles static ${} and backticks safely', async () => {
 test('View supports custom directives', async () => {
     const viewsPath = path.join(tempDir, 'custom-directives');
     fs.mkdirSync(viewsPath, { recursive: true });
-    fs.writeFileSync(path.join(viewsPath, 'test.html'), '@hello(World)');
+    fs.writeFileSync(path.join(viewsPath, 'test.ark.html'), '@hello(World)');
 
     const view = new View({ viewsPath });
 
-    view.addDirective({
-        name: 'hello',
-        handle(content: string) {
-            if (content.startsWith('@hello')) {
-                const name = content.match(/@hello\((.*)\)/)?.[1] || 'Guest';
-                return `_output += "Hello, ${name}!";\n`;
-            }
-            return '';
-        }
+    view.directive('hello', (expression) => {
+        const name = expression || 'Guest';
+        return `_output += "Hello, ${name}!";\n`;
     });
 
     const html = await view.render('test');
@@ -157,7 +151,7 @@ test('View supports custom directives', async () => {
 test('View supports global shared data', async () => {
     const viewsPath = path.join(tempDir, 'shared-data');
     fs.mkdirSync(viewsPath, { recursive: true });
-    fs.writeFileSync(path.join(viewsPath, 'test.html'), '{{ globalVal }} - {{ localVal }}');
+    fs.writeFileSync(path.join(viewsPath, 'test.ark.html'), '{{ globalVal }} - {{ localVal }}');
 
     const view = new View({ viewsPath });
     view.share('globalVal', 'Global');
@@ -169,7 +163,7 @@ test('View supports global shared data', async () => {
 test('View supports push and stack directives', async () => {
     const viewsPath = path.join(tempDir, 'push-stack');
     fs.mkdirSync(viewsPath, { recursive: true });
-    fs.writeFileSync(path.join(viewsPath, 'test.html'), '@push("scripts")<script>1</script>@endpush @push("scripts")<script>2</script>@endpush Scripts: @stack("scripts")');
+    fs.writeFileSync(path.join(viewsPath, 'test.ark.html'), '@push("scripts")<script>1</script>@endpush @push("scripts")<script>2</script>@endpush Scripts: @stack("scripts")');
 
     const view = new View({ viewsPath });
     const html = await view.render('test');
@@ -181,8 +175,8 @@ test('View supports push and stack directives', async () => {
 test('View supports unless and empty directives', async () => {
     const viewsPath = path.join(tempDir, 'unless-empty');
     fs.mkdirSync(viewsPath, { recursive: true });
-    fs.writeFileSync(path.join(viewsPath, 'unless.html'), '@unless(show) Hidden @endunless');
-    fs.writeFileSync(path.join(viewsPath, 'empty.html'), '@empty(items) EmptyArray @endempty @empty(str) EmptyString @endempty');
+    fs.writeFileSync(path.join(viewsPath, 'unless.ark.html'), '@unless(show) Hidden @endunless');
+    fs.writeFileSync(path.join(viewsPath, 'empty.ark.html'), '@empty(items) EmptyArray @endempty @empty(str) EmptyString @endempty');
 
     const view = new View({ viewsPath });
 
@@ -197,8 +191,8 @@ test('View supports components and slots', async () => {
     const viewsPath = path.join(tempDir, 'components');
     fs.mkdirSync(viewsPath, { recursive: true });
 
-    fs.writeFileSync(path.join(viewsPath, 'alert.html'), '<div class="alert {{ type }}"><h1>{!! title !!}</h1><p>{!! slot !!}</p></div>');
-    fs.writeFileSync(path.join(viewsPath, 'page.html'), '@component("alert", { type: "danger" }) @slot("title") Error @endslot Something went wrong. @endcomponent');
+    fs.writeFileSync(path.join(viewsPath, 'alert.ark.html'), '<div class="alert {{ type }}"><h1>{!! title !!}</h1><p>{!! slot !!}</p></div>');
+    fs.writeFileSync(path.join(viewsPath, 'page.ark.html'), '@component("alert", { type: "danger" }) @slot("title") Error @endslot Something went wrong. @endcomponent');
 
     const view = new View({ viewsPath });
     const html = await view.render('page');

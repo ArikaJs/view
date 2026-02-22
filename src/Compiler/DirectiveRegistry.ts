@@ -15,12 +15,12 @@ export class DirectiveRegistry {
         return this.directives.has(name);
     }
 
-    public handle(name: string, expression: string | null, children?: string): string {
+    public handle(name: string, expression: string | null, children?: string): string | null {
         const handler = this.directives.get(name);
         if (handler) {
             return handler(expression, children);
         }
-        return '';
+        return null;
     }
 
     private registerDefaultDirectives(): void {
@@ -29,6 +29,7 @@ export class DirectiveRegistry {
         this.register('elseif', (exp) => `} else if (${exp}) {`);
         this.register('else', () => `} else {`);
         this.register('unless', (exp, children) => `if (!(${exp})) {\n${children}\n}`);
+        this.register('empty', (exp, children) => `if (!(${exp}) || (Array.isArray(${exp}) && ${exp}.length === 0)) {\n${children}\n}`);
 
         // Loops
         this.register('for', (exp, children) => `for (${exp}) {\n${children}\n}`);
