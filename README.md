@@ -254,47 +254,6 @@ return view('dashboard', {
 
 ---
 
-## 🧱 Project Structure
-
-- `src/`
-  - `View.ts` – Main entry point
-  - `Engine.ts` – Execution context
-  - `Compiler.ts` – Template string to JS compiler
-  - `Template.ts` – Template resolution and state
-  - `Directives/` – Built-in controls
-    - `If.ts`, `For.ts`, `Include.ts`, `Section.ts`
-  - `index.ts` – Public exports
-- `tests/` – Unit and integration tests
-- `package.json`
-- `tsconfig.json`
-- `README.md`
-- `LICENSE`
-
----
-
-## Versioning & Stability
-
-- While in **v0.x**, the API may change between minor versions.
-- Once the API stabilizes, `@arikajs/view` will move to **v1.0** and follow **semver** strictly.
-
----
-
-## Contributing
-
-Contributions are welcome! Please ensure all pull requests include tests and follow the project's coding standards.
-
----
-
-## License
-
-`@arikajs/view` is open-sourced software licensed under the **MIT license**.
-
----
-
-## 🧠 Philosophy
-
-> “Presentation is a reflection of logic, not a home for it.”
-
 ## 🏗 Architecture
 
 ```text
@@ -321,4 +280,29 @@ view/
 ├── tsconfig.json
 └── README.md
 ```
+
+---
+
+## Versioning & Stability
+
+- While in **v0.x**, the API may change between minor versions.
+- Once the API stabilizes, `@arikajs/view` will move to **v1.0** and follow **semver** strictly.
+
+---
+
+## Contributing
+
+Contributions are welcome! Please ensure all pull requests include tests and follow the project's coding standards.
+
+---
+
+## License
+
+`@arikajs/view` is open-sourced software licensed under the **MIT license**.
+
+---
+
+## 🧠 Philosophy
+
+> “Presentation is a reflection of logic, not a home for it.”
 
