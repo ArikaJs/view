@@ -1,308 +1,144 @@
-## Arika View
+# Arika View v1.0 💎
 
-`@arikajs/view` is the server-side rendering (SSR) and template engine for the ArikaJS framework.
-
-It allows developers to render dynamic HTML using a clean, expressive template syntax inspired by modern server frameworks — while remaining lightweight, secure, and framework-agnostic.
-
-```ts
-import { View } from '@arikajs/view';
-
-const view = new View({
-    viewsPath: './views',
-    cachePath: './storage/views',
-});
-
-const html = await view.render('home', {
-    title: 'Welcome to ArikaJS',
-});
-```
-
-The View package enables presentation logic in ArikaJS, transforming templates into clean HTML output with safe escaping and high performance.
+`@arikajs/view` is a production-grade, TypeScript-first template engine designed for the ArikaJS ecosystem. It combines the power of modern JS with a clean, expressive syntax inspired by Laravel Blade, but built natively for the Node.js event loop.
 
 ---
 
-### Status
+## 🚀 Core Architecture
 
-- **Stage**: Experimental / v0.x
-- **Scope (v0.x)**:
-  - Template compilation & rendering
-  - Layout & section management
-  - Components & slots architecture (`@component`, `@slot`)
-  - Stackable content (`@push`, `@stack`)
-  - Global shared data (`view.share()`)
-  - Basic control structures (`@if`, `@for`, `@unless`, `@empty`)
-  - Safe output escaping
-  - Template caching
-- **Out of scope (for this package)**:
-  - HTTP request/response handling (see `@arikajs/http`)
-  - Route matching (see `@arikajs/router`)
-  - Authentication logic
+Arika View v1 features a completely rewritten compiler stack:
+- **Lexer**: Intelligent tokenization of `.ark` files.
+- **Parser**: Builds a robust Abstract Syntax Tree (AST) for complex nesting.
+- **Directive Registry**: Modular system for extending template logic.
+- **Code Generator**: Produces highly optimized, async-ready JavaScript.
 
 ---
 
-## 🎯 Purpose
+## ✨ Key Features
 
-The View package is the presentation layer of the ArikaJS ecosystem. It is responsible for:
-- Rendering templates into HTML
-- Managing layouts and partials
-- Escaping output safely
-- Supporting control structures
-- Providing a foundation for Web views, Email templates, and Error pages.
-
----
-
-## 🧠 Responsibilities
-
-### ✅ What Arika View Does
-- Compile templates into renderable functions
-- Render templates with dynamic data
-- Support layouts, sections, and includes
-- Provide basic control structures (`if`, `for`)
-- Escape output by default
-- Cache compiled templates for performance
-
-### ❌ What Arika View Does NOT Do
-- Handle HTTP requests or responses
-- Match routes
-- Manage authentication
-- Execute business logic
-
----
-
-## 🧬 Rendering Flow
-
-```
-Controller
-  ↓
-View.render()
-  ↓
-Template Compiler
-  ↓
-Compiled Template
-  ↓
-HTML Output
-```
-
----
-
-## Features
-
-- **Simple, expressive template syntax**
-  - Clean tags for logic and output.
-- **Layout & section support**
-  - Powerful inheritance model for UI consistency.
-- **Components & Slots Architecture**
-  - Build robust, reusable UI components like buttons, alerts, and modals.
-- **CSS/JS Stacks**
-  - `@push` scripts and styles from partials into the document `<head>`.
-- **Global Data Sharing**
-  - Pass global variables (e.g. `user`, `config`) to all views at once.
-- **Partial / include support**
-  - Modularize your templates into reusable components.
-- **Safe output escaping**
-  - Protection against XSS by default.
-- **Custom directives**
-  - Extend the engine with your own syntax.
-- **Template caching**
-  - High-performance rendering via pre-compiled templates.
-
----
-
-## Installation
-
-```bash
-npm install @arikajs/view
-# or
-yarn add @arikajs/view
-# or
-pnpm add @arikajs/view
-```
-
----
-
-## 🧩 Template Syntax
-
-### Variable Output
+### 1️⃣ Pure JavaScript Expressions
+Arika View embraces JavaScript. No need to learn a limited expression language — if it's valid JS, it's valid in your template.
 ```html
-<h1>{{ title }}</h1>
-```
-*Escaped by default.*
-
-### Raw Output
-```html
-{!! html !!}
-```
-
-### Conditionals
-```html
-@if (user)
-    <p>Welcome, {{ user.name }}</p>
-@elseif (guest)
-    <p>Please login</p>
+@if (user?.isAdmin && posts.length > 0)
+    <p>Welcome back, Admin!</p>
 @endif
-
-@unless (isEditor)
-    <p>You cannot edit this post.</p>
-@endunless
-
-@empty (items)
-    <p>There are no items to display.</p>
-@endempty
 ```
 
-### Loops
-```html
-@for (item in items)
-    <li>{{ item }}</li>
-@endfor
-```
-
-### Includes & Components
-```html
-<!-- Simple include -->
-@include('partials.header')
-
-<!-- Reusable Component -->
-@component('components.alert', { type: 'danger' })
-    @slot('title')
-        Error!
-    @endslot
-    
-    This is the default slot output.
-@endcomponent
-```
-*(In `components/alert.html`, you would output `{!! title !!}` and `{!! slot !!}`)*
-
-### Stackable Scripts & Styles
-You can push output to a stack from deep within child views or components, and render them all at once in the main layout.
-
-**child.html**
-```html
-@push('scripts')
-    <script src="https://cdn.example.com/widget.js"></script>
-@endpush
-```
-
-**layout.html**
-```html
-<head>
-    @stack('scripts')
-</head>
-```
-
-### Layouts & Sections
-
-**layout.html**
-```html
-<html>
-<body>
-    @yield('content')
-</body>
-</html>
-```
-
-**page.html**
-```html
-@extends('layout')
-
-@section('content')
-    <h1>Hello World</h1>
-@endsection
-```
-
----
-
-## 🔌 Usage
-
-### Basic Rendering
+### 2️⃣ Type-Safe View Data
+Leverage TypeScript's power in your views.
 ```ts
-import { View } from '@arikajs/view';
-
-const view = new View({
-    viewsPath: './views',
-    cachePath: './storage/views',
-});
-
-// Share global data
-view.share('appName', 'ArikaJS Project');
-
-const html = await view.render('home', {
-    title: 'Welcome to ArikaJS',
-});
-```
-
-### Controller Integration
-*(Typically provided by the HTTP Kernel)*
-```ts
-return view('dashboard', {
-    user,
-});
-```
-
----
-
-## ⚙️ Configuration Options
-
-```ts
-{
-  viewsPath: string;           // Directory containing templates
-  cachePath?: string;          // Directory for compiled templates
-  extension?: '.html' | '.ark'; // Template file extension
-  cache?: boolean;             // Enable/disable caching
+interface HomeData {
+    title: string;
+    user: { name: string };
 }
+
+await view.render<HomeData>('home', {
+    title: 'ArikaJS',
+    user: { name: 'Prakash' }
+});
+```
+
+### 3️⃣ Modern Components (`<x-`)
+Stop using clunky syntax. Use modern, HTML-like components.
+```html
+<x-alert type="danger" :dismissible="true">
+    <x-slot name="title">Warning!</x-slot>
+    Something went wrong.
+</x-alert>
+```
+
+### 4️⃣ Smart Caching & Dev Mode
+- **Hash-based Invalidation**: Templates only recompile when content actually changes.
+- **Dev Mode**: Real-time recompilation and enhanced error stack traces with file/line references.
+- **Production Mode**: Minified output and aggressive in-memory caching.
+
+### 5️⃣ Fragments (HTMX Ready ⚡)
+Render only a specific part of your template — perfect for HTMX or partial reloads.
+```html
+@fragment('sidebar')
+    <nav>...</nav>
+@endfragment
+```
+```ts
+await view.renderFragment('dashboard', 'sidebar');
 ```
 
 ---
 
-## 🏗 Architecture
+## 🛠 Directives Reference
+
+| Directive | Description |
+|-----------|-------------|
+| `@if`, `@elseif`, `@else` | Standard conditional logic. |
+| `@unless` | Inverse of `@if`. |
+| `@for` | Standard JS loop. |
+| `@each(view, data, item, empty)` | Render a view for each item in a collection. |
+| `@switch`, `@case`, `@default` | Switch statement support. |
+| `@break`, `@continue` | Control loop execution. |
+| `@auth`, `@guest` | Conditional rendering based on user session. |
+| `@once` | Ensure a block is only rendered once per request. |
+| `@verbatim` | Stop parsing content inside the block. |
+| `@push`, `@stack`, `@prepend` | Manage assets and scripts across layouts. |
+| `@await(promise)` | Native async support inside templates. |
+
+---
+
+## 🔌 Advanced Ecosystem
+
+### View Composers
+Inject data into specific views automatically before they are rendered.
+```ts
+view.composer('dashboard', async (data) => {
+    data.notifications = await getNotifications();
+});
+```
+
+### Global Helpers
+Define custom functions accessible in every template.
+```ts
+view.helper('formatDate', (date) => new Intl.DateTimeFormat().format(date));
+```
+Usage: `{{ formatDate(user.createdAt) }}`
+
+### Custom Directives API
+Extend Arika View with your own powerful directives.
+```ts
+view.directive('uppercase', (exp) => `_output += String(${exp}).toUpperCase();`);
+```
+
+---
+
+## 📁 File Structure & Extension
+
+Arika View exclusively uses the `.ark.html` extension for all templates.
 
 ```text
-view/
-├── src/
-│   ├── Directives
-│   │   ├── Component.ts
-│   │   ├── Empty.ts
-│   │   ├── For.ts
-│   │   ├── If.ts
-│   │   ├── Include.ts
-│   │   ├── Push.ts
-│   │   ├── Section.ts
-│   │   ├── Slot.ts
-│   │   ├── Stack.ts
-│   │   └── Unless.ts
-│   ├── Compiler.ts
-│   ├── Engine.ts
-│   ├── index.ts
-│   ├── Template.ts
-│   └── View.ts
-├── tests/
-├── package.json
-├── tsconfig.json
-└── README.md
+resources/views/
+├── layouts/
+│   └── app.ark.html
+├── auth/
+│   ├── login.ark.html
+│   └── register.ark.html
+└── welcome.ark.html
 ```
 
 ---
 
-## Versioning & Stability
+## 💻 CLI Integration
 
-- While in **v0.x**, the API may change between minor versions.
-- Once the API stabilizes, `@arikajs/view` will move to **v1.0** and follow **semver** strictly.
-
----
-
-## Contributing
-
-Contributions are welcome! Please ensure all pull requests include tests and follow the project's coding standards.
-
----
-
-## License
-
-`@arikajs/view` is open-sourced software licensed under the **MIT license**.
+Generate views instantly with the Arika CLI:
+```bash
+arika make:view home
+# Generates resources/views/home.ark.html
+```
 
 ---
 
 ## 🧠 Philosophy
 
-> “Presentation is a reflection of logic, not a home for it.”
+> "Arika View turns your templates into native Node.js code, making UI rendering as fast as the engine itself."
 
+---
+
+## License
+MIT

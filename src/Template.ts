@@ -20,7 +20,7 @@ export class Template {
      * Resolve template name to file path.
      */
     private resolvePath(template: string): string {
-        const ext = this.config.extension || '.html';
+        const ext = this.config.extension || '.ark.html';
         const fileName = template.replace(/\./g, path.sep) + ext;
         return path.join(this.config.viewsPath, fileName);
     }
