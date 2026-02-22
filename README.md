@@ -294,3 +294,31 @@ Contributions are welcome! Please ensure all pull requests include tests and fol
 ## 🧠 Philosophy
 
 > “Presentation is a reflection of logic, not a home for it.”
+
+## 🏗 Architecture
+
+```text
+view/
+├── src/
+│   ├── Directives
+│   │   ├── Component.ts
+│   │   ├── Empty.ts
+│   │   ├── For.ts
+│   │   ├── If.ts
+│   │   ├── Include.ts
+│   │   ├── Push.ts
+│   │   ├── Section.ts
+│   │   ├── Slot.ts
+│   │   ├── Stack.ts
+│   │   └── Unless.ts
+│   ├── Compiler.ts
+│   ├── Engine.ts
+│   ├── index.ts
+│   ├── Template.ts
+│   └── View.ts
+├── tests/
+├── package.json
+├── tsconfig.json
+└── README.md
+```
+
