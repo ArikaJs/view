@@ -87,7 +87,6 @@ export class Engine {
      * Render a template file.
      */
     public async render<T = Record<string, any>>(template: string, data: T = {} as T, isInternal = false): Promise<string> {
-        console.log(`[ViewEngine] Rendering template: ${template} (isInternal: ${isInternal})`);
         if (!isInternal) {
             this.sections = {};
             this.pushes = {};
